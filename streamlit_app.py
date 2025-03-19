@@ -37,8 +37,14 @@ def get_ai_streaming_response(messages):
         # Display the streaming chunks as they arrive
         response_text = ""
         for chunk in codegpt.chat_completion(agent_id=AGENT_ID, messages=messages, stream=True):
-            response_text += chunk['choices'][0]['message']['content']
-            st.write(response_text, end="", flush=True)
+            # Ensure that 'chunk' is a dictionary and contains 'choices' key
+            if isinstance(chunk, dict) and 'choices' in chunk:
+                # Access and append the content from the response chunk
+                response_text += chunk['choices'][0]['message']['content']
+                st.write(response_text, end="", flush=True)
+            else:
+                st.error(f"Unexpected chunk format: {json.dumps(chunk, indent=2)}")
+                break
         return response_text
     except Exception as e:
         # Handle any exceptions and show the error

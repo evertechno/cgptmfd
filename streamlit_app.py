@@ -16,11 +16,14 @@ def get_ai_response(messages):
         # Send the user message to the AI agent for a non-streaming response
         response = codegpt.chat_completion(agent_id=AGENT_ID, messages=messages)
         
+        # Print the full response for debugging
+        st.write("Full API Response:", json.dumps(response, indent=2))
+        
         # Check if the response contains the expected structure
         if 'choices' in response and len(response['choices']) > 0:
             return response['choices'][0]['message']['content']
         else:
-            # Print the full response if it doesn't match expected structure
+            # Log unexpected response format
             st.error(f"Unexpected response format: {json.dumps(response, indent=2)}")
             return "Sorry, something went wrong. Please try again later."
     except Exception as e:

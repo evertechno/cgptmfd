@@ -1,19 +1,32 @@
 import streamlit as st
 from judini import CodeGPTPlus
+import json
 
-# Your CodeGPT API details
-CODEGPT_API_KEY = "your-api-key"  # Replace with your actual API key
-ORG_ID = "your-org-id"            # Replace with your actual Org ID
-AGENT_ID = "0000000-0000-0000-0000-000000000000"  # Replace with your actual Agent ID
+# Access credentials from Streamlit secrets
+API_KEY = st.secrets["codegpt"]["API_KEY"]
+ORG_ID = st.secrets["codegpt"]["ORG_ID"]
+AGENT_ID = st.secrets["codegpt"]["AGENT_ID"]
 
 # Initialize the CodeGPTPlus instance
-codegpt = CodeGPTPlus(api_key=CODEGPT_API_KEY, org_id=ORG_ID)
+codegpt = CodeGPTPlus(api_key=API_KEY, org_id=ORG_ID)
 
-# Function to get response from CodeGPT agent
+# Function to get response from CodeGPT agent with better error handling
 def get_ai_response(messages):
-    # Send the user message to the AI agent for a non-streaming response
-    response = codegpt.chat_completion(agent_id=AGENT_ID, messages=messages)
-    return response['choices'][0]['message']['content'] if 'choices' in response else "Sorry, something went wrong."
+    try:
+        # Send the user message to the AI agent for a non-streaming response
+        response = codegpt.chat_completion(agent_id=AGENT_ID, messages=messages)
+        
+        # Check if the response contains the expected structure
+        if 'choices' in response and len(response['choices']) > 0:
+            return response['choices'][0]['message']['content']
+        else:
+            # Print the full response if it doesn't match expected structure
+            st.error(f"Unexpected response format: {json.dumps(response, indent=2)}")
+            return "Sorry, something went wrong. Please try again later."
+    except Exception as e:
+        # Handle any exceptions and show the error
+        st.error(f"An error occurred: {str(e)}")
+        return "Sorry, an error occurred. Please try again later."
 
 # Streamlit UI elements
 st.title("AI Chatbot")
